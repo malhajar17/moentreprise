@@ -1,0 +1,5 @@
+The website landing page showcases a clean and modern design focused on visual content. At the top, a navigation bar offers categories like “Explore,” “Directory,” “Academy,” and more, with options to log in or sign up. The color palette is minimalistic, primarily utilizing white for the background with black and gray text, accented by occasional bright tags in blue, red, orange, and black.
+
+Typography is sharp and clear, featuring a sans-serif font for easy readability. Below the navigation, a grid layout displays featured website designs, each within its own card, adopting a balanced mix of text and imagery. The thumbnails are vibrant, with varying designs, highlighting creative web inspirations.
+
+Calls-to-action include buttons like “Submit Website.” Notable UI patterns include dropdown filters for sorting, ensuring users can navigate content easily. The footer contains links for additional options such as cookie policy, legal terms, and social media icons for connectivity, maintaining a cohesive design throughout.

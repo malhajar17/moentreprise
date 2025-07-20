@@ -1,0 +1,33 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include requirements.txt
+include env.example
+include setup.py
+
+# Include all documentation
+recursive-include docs *.md *.rst *.txt
+
+# Include resources
+recursive-include resources *.png *.jpg *.jpeg *.gif *.svg
+
+# Include examples
+recursive-include examples *.py
+
+# Include source code
+recursive-include src *.py
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude *.dylib
+global-exclude .git*
+global-exclude .coverage
+global-exclude .tox
+exclude .gitignore
+exclude .env*
+exclude venv/
+exclude static/
+exclude workspace/ 

@@ -1,0 +1,13 @@
+The landing page features a clean and minimalist design with the primary focus being a notification message. At the top-left, there's a character image in a playful pose, adding a friendly touch.
+
+**Layout and Typography:**
+The page is centrally aligned with text directly under the character. The main message is bolded, using a larger font size, providing clear emphasis. Supporting text is smaller, using a simple sans-serif typeface for readability.
+
+**Color Palette:**
+The page predominantly uses white, creating a clean backdrop. The text is primarily black, ensuring high contrast and readability. Blue is used for the active call-to-action button, "Log in," which stands out. The "File a ticket" button has a white background with a black border, maintaining uniformity with the text color while providing slight emphasis.
+
+**Calls-to-Action:**
+Two central buttons act as calls-to-action: "Log in" and "File a ticket." Both are prominently placed below the text message, encouraging user interaction.
+
+**Notable UI Patterns:**
+The page uses a classic pattern of combining a mascot with error messaging to maintain engagement. The button design simplifies user action with a straightforward, no-frills approach.
