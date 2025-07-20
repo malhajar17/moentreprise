@@ -314,6 +314,7 @@ def index():
         .alex { border-left-color: var(--primary-light); background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); }
         .maya { border-left-color: var(--accent); background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); }
         .sophie { border-left-color: var(--primary); background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); }
+        .marine { border-left-color: var(--accent); background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
         .human { border-left-color: var(--neutral); background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); }
         .system { border-left-color: var(--neutral); background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); font-style: italic; }
         
@@ -560,6 +561,19 @@ def index():
                     </div>
                     <div class="persona-description">
                         Creates compelling marketing campaigns and social media content. Specializes in LinkedIn marketing with AI-generated visuals to promote your business launch effectively.
+                    </div>
+                </div>
+
+                <div class="persona-card marine">
+                    <div class="persona-header">
+                        <div class="persona-avatar">🎬</div>
+                        <div>
+                            <div class="persona-name">Marine</div>
+                            <div class="persona-role">Video Marketing Specialist</div>
+                        </div>
+                    </div>
+                    <div class="persona-description">
+                        Creates stunning promotional videos using Google Veo AI. Specializes in visual storytelling and video campaigns that capture emotions and drive sales through compelling video content.
                     </div>
                 </div>
             </div>
@@ -885,6 +899,20 @@ def index():
             status.innerHTML = `📱 Sophie is publishing to LinkedIn... <span class="loading-dots"></span>`;
             status.className = 'working';
             console.log('📱 Sophie posting to LinkedIn');
+        });
+        
+        socket.on('marine_creating_video', function(data){
+            const status = document.getElementById('status');
+            status.innerHTML = `🎬 Marine is creating promotional video with Google Veo... <span class="loading-dots"></span>`;
+            status.className = 'working';
+            console.log('🎬 Marine started video creation');
+        });
+        
+        socket.on('marine_posting_video', function(data){
+            const status = document.getElementById('status');
+            status.innerHTML = `📹 Marine is publishing video campaign to LinkedIn... <span class="loading-dots"></span>`;
+            status.className = 'working';
+            console.log('📹 Marine posting video to LinkedIn');
         });
         socket.on('human_turn_started', function(data) {
             // Wait for persona audio to finish before activating microphone
@@ -1292,6 +1320,26 @@ You MUST:
 Do NOT wait for the LinkedIn post to complete - just announce what you're doing and pass control back to Marcus.""",
                 temperature=0.7,
                 max_response_tokens=800
+            ),
+            # 8 – Marine (Video Marketing Specialist)
+            PersonaConfig(
+                name="Marine",
+                voice="shimmer",
+                instructions="""You are Marine, the Video Marketing Specialist using Google Veo for promotional videos.
+
+When called upon, you should:
+1. FIRST, speak enthusiastically: "Magnifique! I'll create a beautiful promotional video for our Fête d'Anne campaign! Using Google Veo, I'll generate a stunning 8-second video featuring a girl enjoying flowers from Les Fleurs, perfect for our 30% off promotion. This visual storytelling will really connect with our audience!"
+2. Then immediately call the post_video_to_linkedin function with promotional campaign details
+3. Finally, call select_next_speaker with speaker_index='0' to return control to Marcus
+
+You MUST:
+- Speak your full response out loud (the text above)
+- Call post_video_to_linkedin function
+- Call select_next_speaker with speaker_index='0'
+
+Do NOT wait for the video generation to complete - just announce what you're doing and pass control back to Marcus.""",
+                temperature=0.7,
+                max_response_tokens=600
             )
         ]
         # NOTE: Human will be automatically appended as index 8 by SimpleOrchestrator.
@@ -1337,6 +1385,8 @@ Do NOT wait for the LinkedIn post to complete - just announce what you're doing 
         orchestrator.on_sophie_creating_content = lambda: socketio.emit('sophie_creating_content', {})
         orchestrator.on_sophie_generating_image = lambda: socketio.emit('sophie_generating_image', {})
         orchestrator.on_sophie_posting_linkedin = lambda: socketio.emit('sophie_posting_linkedin', {})
+        orchestrator.on_marine_creating_video = lambda: socketio.emit('marine_creating_video', {})
+        orchestrator.on_marine_posting_video = lambda: socketio.emit('marine_posting_video', {})
         
         def on_persona_finished(name, text, audio_data):
             """Handle persona finished - NO WAITING, just emit the event"""

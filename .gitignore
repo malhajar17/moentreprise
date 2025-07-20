@@ -66,7 +66,7 @@ logs/
 # Audio files (test outputs)
 *.wav
 *.mp3
-*.pcm
+*.pcm 
 *.webm
 *.ogg
 

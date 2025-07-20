@@ -1,0 +1,17 @@
+{
+    "endpoint": "projects/legml-456908/locations/us-central1/publishers/google/models/veo-3.0-generate-preview",
+    "instances": [
+        {
+            "prompt": "a girl in paris selling flowers in the street with a store called \"Les fleurs\""
+        }
+    ],
+    "parameters": {
+        "aspectRatio": "16:9",
+        "sampleCount": 2,
+        "durationSeconds": "8",
+        "personGeneration": "allow_all",
+        "addWatermark": true,
+        "includeRaiReason": true,
+        "generateAudio": true
+    }
+}

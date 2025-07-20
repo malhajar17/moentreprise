@@ -113,6 +113,8 @@ class SimpleOrchestrator:
         self.on_sophie_creating_content: Optional[Callable[[], None]] = None
         self.on_sophie_generating_image: Optional[Callable[[], None]] = None
         self.on_sophie_posting_linkedin: Optional[Callable[[], None]] = None
+        self.on_marine_creating_video: Optional[Callable[[], None]] = None
+        self.on_marine_posting_video: Optional[Callable[[], None]] = None
         
         # Conversation control
         self.max_turns = 12  # Stop after this many total turns (includes human turns)
@@ -328,6 +330,8 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                     tools.append(self._create_vibe_code_function())
                 if persona.name == "Sophie":
                     tools.append(self._create_post_to_linkedin_function())
+                if persona.name == "Marine":
+                    tools.append(self._create_post_video_to_linkedin_function())
 
                 session_config = {
                     "type": "session.update",
@@ -460,7 +464,7 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                         name = data.get("name")
                         arguments = data.get("arguments", "{}")
                         
-                        self.logger.info(f"🔧 Function call completed: {name} with args: {arguments}")
+                        self.logger.info(f"🔧 Function call completed: {name} with args: {repr(arguments)}")
                         
                         if name == "select_next_speaker":
                             try:
@@ -534,7 +538,17 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                         else:
                             try:
                                 # Parse function arguments for LinkedIn posting
-                                linkedin_args = json.loads(arguments) if arguments else {}
+                                self.logger.info(f"📱 Raw LinkedIn function arguments: {repr(arguments)}")
+                                try:
+                                    linkedin_args = json.loads(arguments) if arguments else {}
+                                except json.JSONDecodeError as je:
+                                    self.logger.error(f"❌ JSON decode error for LinkedIn args: {je}")
+                                    self.logger.error(f"❌ Raw arguments were: {repr(arguments)}")
+                                    # Use default values as fallback
+                                    linkedin_args = {
+                                        "content": "Exciting news! Our new website is now live at lefleur.com",
+                                        "hashtags": ["#FlowerShop", "#WebsiteLaunch", "#LeFleur"]
+                                    }
                                 self.logger.info(f"📱 LinkedIn posting function called with args: {linkedin_args}")
                                 
                                 # Emit Sophie status: creating content
@@ -543,8 +557,7 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                                 
                                 self._linkedin_posting = True
                                 
-                                # Execute LinkedIn posting using LinkedInMarketer utility
-                                import asyncio
+                                # Execute LinkedIn posting using LinkedInMarketer utility SYNCHRONOUSLY
                                 import sys
                                 import os
                                 sys.path.append(os.path.join(os.path.dirname(__file__), 'personas'))
@@ -552,25 +565,71 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                                 marketer = LinkedInMarketer()
                                 marketer.orchestrator = self  # Pass orchestrator reference for status callbacks
                                 
-                                # Store the LinkedIn posting task to track completion
-                                async def run_linkedin_post():
-                                    try:
-                                        result = await marketer.process_turn(self.conversation_history[-10:] if self.conversation_history else [])
-                                        self.logger.info("✅ LinkedIn posting completed successfully")
-                                        # Store result for Sophie to reference
-                                        self._linkedin_result = result
-                                    except Exception as e:
-                                        self.logger.error(f"❌ LinkedIn posting failed: {e}")
-                                        self._linkedin_result = {'error': str(e)}
-                                    finally:
-                                        self._linkedin_posting = False
+                                # Run LinkedIn posting synchronously and wait for completion
+                                try:
+                                    result = await marketer.process_turn(self.conversation_history[-10:] if self.conversation_history else [])
+                                    self.logger.info("✅ LinkedIn posting completed successfully")
+                                    self._linkedin_result = result
+                                except Exception as e:
+                                    self.logger.error(f"❌ LinkedIn posting failed: {e}")
+                                    self._linkedin_result = {'error': str(e)}
+                                finally:
+                                    self._linkedin_posting = False
                                 
-                                # Create task and store reference
-                                self._linkedin_task = asyncio.create_task(run_linkedin_post())
-                                self.logger.info("✅ LinkedIn marketing task started")
+                                self.logger.info("✅ LinkedIn marketing completed - Sophie's turn can now end")
                             except Exception as e:
                                 self._linkedin_posting = False
                                 self.logger.error(f"❌ LinkedIn posting error: {e}")
+                    
+                    elif name == "post_video_to_linkedin":
+                        # Prevent duplicate video posts
+                        if hasattr(self, '_video_posting') and self._video_posting:
+                            self.logger.info("🚫 Video posting already in progress - ignoring duplicate call")
+                        else:
+                            try:
+                                # Parse function arguments for video posting
+                                self.logger.info(f"🎬 Raw video function arguments: {repr(arguments)}")
+                                try:
+                                    video_args = json.loads(arguments) if arguments else {}
+                                except json.JSONDecodeError as je:
+                                    self.logger.error(f"❌ JSON decode error for video args: {je}")
+                                    self.logger.error(f"❌ Raw arguments were: {repr(arguments)}")
+                                    # Use default values as fallback
+                                    video_args = {
+                                        "promotion": "Fête d'Anne - 30% off all bouquets",
+                                        "video_description": "Promotional video for flower shop campaign"
+                                    }
+                                self.logger.info(f"🎬 Video posting function called with args: {video_args}")
+                                
+                                # Emit Marine status: creating video
+                                if self.on_marine_creating_video:
+                                    self.on_marine_creating_video()
+                                
+                                self._video_posting = True
+                                
+                                # Execute video posting using VideoMarketer utility SYNCHRONOUSLY
+                                import sys
+                                import os
+                                sys.path.append(os.path.join(os.path.dirname(__file__), 'personas'))
+                                from video_marketer import VideoMarketer
+                                marketer = VideoMarketer()
+                                marketer.orchestrator = self  # Pass orchestrator reference for status callbacks
+                                
+                                # Run video posting synchronously and wait for completion
+                                try:
+                                    result = await marketer.process_turn(self.conversation_history[-10:] if self.conversation_history else [])
+                                    self.logger.info("✅ Video posting completed successfully")
+                                    self._video_result = result
+                                except Exception as e:
+                                    self.logger.error(f"❌ Video posting failed: {e}")
+                                    self._video_result = {'error': str(e)}
+                                finally:
+                                    self._video_posting = False
+                                
+                                self.logger.info("✅ Video marketing completed - Marine's turn can now end")
+                            except Exception as e:
+                                self._video_posting = False
+                                self.logger.error(f"❌ Video posting error: {e}")
                     
                     elif msg_type == "response.done":
                         break
@@ -833,6 +892,27 @@ IMPORTANT: Respond in EXACTLY 2 sentences - no more, no less! The deeper the con
                     }
                 },
                 "required": ["content", "website_url", "image_generated"]
+            },
+        }
+    
+    def _create_post_video_to_linkedin_function(self) -> dict:
+        return {
+            "type": "function",
+            "name": "post_video_to_linkedin",
+            "description": "Create and post a promotional video using Google Veo for the Fête d'Anne campaign with 30% off promotion. Call this to trigger the video marketing campaign.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "promotion": {
+                        "type": "string",
+                        "description": "The promotion details (use 'Fête d'Anne - 30% off all bouquets')"
+                    },
+                    "video_description": {
+                        "type": "string",
+                        "description": "Description of the promotional video content"
+                    }
+                },
+                "required": ["promotion", "video_description"]
             },
         }
     

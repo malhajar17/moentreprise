@@ -325,9 +325,36 @@ class PhasedOrchestrator(SimpleOrchestrator):
             else:
                 await super()._move_to_next_persona(); return
         elif self.phase == "marketing":
-            # Sophie creates LinkedIn post, then hand back to Marcus for closing
+            # Sophie creates LinkedIn post, then Marcus introduces Marine for video marketing
             if speaker == "Sophie":
-                # Sophie finished marketing, now Marcus closes the session
+                # Sophie finished LinkedIn post, now Marcus introduces Marine
+                self.current_persona_index = self._idx("Marcus")
+                self.phase = "video_intro"  # Switch to video intro phase
+                
+                # Update Marcus instructions to introduce Marine
+                marcus_persona = next((p for p in self.personas if p.name == "Marcus"), None)
+                if marcus_persona:
+                    marcus_persona.instructions = (
+                        "You are Marcus, the Project Manager. Sophie has just completed an excellent LinkedIn marketing campaign! "
+                        "Thank Sophie warmly for her outstanding marketing work in 2-3 sentences. "
+                        "Then introduce Marine: 'Now let's take our marketing to the next level! Marine, our Video Marketing Specialist, "
+                        "will create a beautiful promotional video using Google Veo for our Fête d'Anne campaign with 30% off all bouquets!' "
+                        "End by calling select_next_speaker with speaker_index='8' to hand control to Marine."
+                    )
+            else:
+                await super()._move_to_next_persona(); return
+        elif self.phase == "video_intro":
+            # Marcus introduces Marine, then hand to Marine for video marketing
+            if speaker == "Marcus":
+                # Marcus introduced Marine, now hand to Marine for video marketing
+                self.current_persona_index = self._idx("Marine")
+                self.phase = "video_marketing"  # Switch to video marketing phase
+            else:
+                await super()._move_to_next_persona(); return
+        elif self.phase == "video_marketing":
+            # Marine creates promotional video, then hand back to Marcus for closing
+            if speaker == "Marine":
+                # Marine finished video marketing, now Marcus closes the session
                 self.current_persona_index = self._idx("Marcus")
                 self.phase = "closing"  # Switch to closing phase
                 
@@ -335,10 +362,10 @@ class PhasedOrchestrator(SimpleOrchestrator):
                 marcus_persona = next((p for p in self.personas if p.name == "Marcus"), None)
                 if marcus_persona:
                     marcus_persona.instructions = (
-                        "You are Marcus, the Project Manager. Sophie has just completed an excellent LinkedIn marketing campaign for our website launch. "
-                        "Thank Sophie warmly for her outstanding marketing work in 2-3 sentences. "
-                        "Then provide a brief project wrap-up: acknowledge the entire team's great work (Maya for research, Alex for development, Sophie for marketing). "
-                        "Conclude by saying the project is successfully completed and the session is now closed. "
+                        "You are Marcus, the Project Manager. Marine has just completed an amazing promotional video campaign for our Fête d'Anne promotion! "
+                        "Thank Marine warmly for her outstanding video marketing work in 2-3 sentences. "
+                        "Then provide a brief project wrap-up: acknowledge the entire team's great work (Maya for research, Alex for development, Sophie for LinkedIn marketing, Marine for video marketing). "
+                        "Conclude by saying the complete marketing campaign is successfully launched and the session is now closed. "
                         "Keep it professional, positive, and conclusive. Do not call any functions - just provide the closing statement."
                     )
             else:
