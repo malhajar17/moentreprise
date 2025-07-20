@@ -212,16 +212,19 @@ def vibe_code_executor(project_root: Path, terminal_cb=None, dev_cb=None) -> boo
 
         emit("[vibe] Launching OpenManus coding agent...\n")
 
-        # Use interactive approach with proper timing
+        # Use --prompt flag to pass prompt directly as command line argument
+        import shlex
+        escaped_prompt = shlex.quote(prompt)
         shell_cmd = (
-            " cd /home/azureuser/OpenManus && source venv/bin/activate && "
-            "python3 main.py"
+            f" cd /home/azureuser/OpenManus && source venv/bin/activate && "
+            f"python3 main.py --prompt {escaped_prompt}"
         )
 
-        # Use bash -c so we can source venv
+        emit(f"[vibe] Starting OpenManus with prompt ({len(prompt)} characters)...\n")
+
+        # Use bash -c so we can source venv (no stdin needed with --prompt flag)
         p = subprocess.Popen(
             ["bash", "-c", shell_cmd],
-            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -229,38 +232,10 @@ def vibe_code_executor(project_root: Path, terminal_cb=None, dev_cb=None) -> boo
             universal_newlines=True,
         )
 
-        # Wait for OpenManus CLI to fully initialize before sending prompt
-        import time
-        emit("[vibe] Waiting for OpenManus CLI to initialize...\n")
-        time.sleep(3)  # Give OpenManus 3 seconds to start up and be ready for input
-        
-        # Now send the prompt
-        try:
-            emit(f"[vibe] Sending prompt to OpenManus ({len(prompt)} characters)...\n")
-            p.stdin.write(prompt + "\n")
-            p.stdin.flush()
-            p.stdin.close()  # Close stdin to signal we're done with input
-            emit("[vibe] Prompt sent, waiting for OpenManus to process...\n")
-        except Exception as e:
-            emit(f"[vibe] Error sending prompt: {e}\n")
-            p.terminate()
-            return False
-
-        # Stream output with timeout handling
-        start_time = time.time()
-        timeout = 300  # 5 minutes timeout
-        
+        # Stream output from OpenManus
         try:
             for line in iter(p.stdout.readline, ""):
                 emit(line)
-                # Reset timeout when we get output
-                start_time = time.time()
-                
-                # Check for timeout
-                if time.time() - start_time > timeout:
-                    emit("[vibe] Timeout waiting for OpenManus output\n")
-                    p.terminate()
-                    return False
         except Exception as e:
             emit(f"[vibe] Error reading output: {e}\n")
             p.terminate()
